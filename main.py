@@ -32,6 +32,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
+        "https://attendsheets.com",
+        "https://www.attendsheets.com",
     ],
     allow_origin_regex=r"https://lernova-attendsheets-frontend.*\.vercel\.app",
     allow_credentials=True,
