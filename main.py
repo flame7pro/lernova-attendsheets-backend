@@ -24,33 +24,8 @@ load_dotenv()
 
 app = FastAPI(title="Lernova Attendsheets API")
 
-# Initialize Database Manager with dynamic backend
-db_type = os.getenv("DB_TYPE", "file")  # "file" or "mongodb"
-
-if db_type == "mongodb":
-    mongo_uri = os.getenv("MONGO_URI")
-    if not mongo_uri:
-        raise ValueError("MONGO_URI environment variable is required when DB_TYPE=mongodb")
-    
-    mongo_db_name = os.getenv("MONGO_DB_NAME", "lernova_db")
-    
-    db = DatabaseManager(
-        backend_type="mongodb",
-        mongo_uri=mongo_uri,
-        database_name=mongo_db_name
-    )
-    print(f"✅ Using MongoDB backend: {mongo_db_name}")
-    
-elif db_type == "file":
-    base_dir = os.getenv("DB_BASE_DIR", "data")
-    db = DatabaseManager(
-        backend_type="file",
-        base_dir=base_dir
-    )
-    print(f"✅ Using File backend: {base_dir}")
-    
-else:
-    raise ValueError(f"Unsupported DB_TYPE: {db_type}. Use 'file' or 'mongodb'")
+# Initialize Database Manager
+db = DatabaseManager(base_dir="data")
 
 # CORS Configuration
 app.add_middleware(
@@ -697,64 +672,6 @@ async def signup(request: SignupRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Signup failed: {str(e)}"
         )
-
-@app.post("/auth/verify-email", response_model=TokenResponse)
-async def verify_email(request: VerifyEmailRequest):
-    """Verify email with code"""
-    try:
-        if request.email not in verification_codes:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No verification code found"
-            )
-        
-        stored_data = verification_codes[request.email]
-        expires_at = datetime.fromisoformat(stored_data["expires_at"])
-        
-        if datetime.utcnow() > expires_at:
-            del verification_codes[request.email]
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Verification code expired"
-            )
-        
-        if stored_data["code"] != request.code:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid verification code"
-            )
-        
-        # Create user in database
-        user_id = f"user_{int(datetime.utcnow().timestamp())}"
-        user_data = db.create_user(
-            user_id=user_id,
-            email=request.email,
-            name=stored_data["name"],
-            password_hash=stored_data["password"]
-        )
-        
-        # Clean up verification code
-        del verification_codes[request.email]
-        
-        # Create access token
-        access_token = create_access_token(
-            data={"sub": request.email},
-            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        )
-        
-        return TokenResponse(
-            access_token=access_token,
-            user=UserResponse(id=user_id, email=request.email, name=stored_data["name"])
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"Verification error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Verification failed: {str(e)}"
-        )
-
 
 @app.post("/auth/login", response_model=TokenResponse)
 async def login(request: LoginRequest):
@@ -1520,10 +1437,6 @@ async def verify_class_exists(class_id: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to verify class"
         )
-
-
-# 5. UPDATE your existing verify-email endpoint to handle both roles
-# REPLACE your existing @app.post("/auth/verify-email") with this:
 
 @app.post("/auth/verify-email", response_model=TokenResponse)
 async def verify_email(request: VerifyEmailRequest):
