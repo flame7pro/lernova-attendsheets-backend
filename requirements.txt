@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic[email]
+python-dotenv
+PyJWT
+resend
+pymongo
+sib-api-v3-sdk
+user-agents
