@@ -31,10 +31,10 @@ db = DatabaseManager(base_dir="data")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # Local development
-        "https://lernova-attendsheets-frontend.vercel.app",  # Vercel default URL
-        "https://attendsheets.com",  # Your custom domain
-        "https://www.attendsheets.com",  # With www
+        "http://localhost:3000",
+        "https://lernova-attendsheets-frontend.vercel.app",
+        "https://lernova-attendsheets-frontend-jwa8hkexs-vercel.app",  # ← Add this!
+        "https://*.vercel.app",  # ← Or use wildcard (less secure but easier)
     ],
     allow_credentials=True,
     allow_methods=["*"],
