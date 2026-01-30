@@ -30,7 +30,12 @@ db = DatabaseManager(base_dir="data")
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=[
+        "http://localhost:3000",  # Local development
+        "https://lernova-attendsheets-frontend.vercel.app",  # Vercel default URL
+        "https://attendsheets.com",  # Your custom domain
+        "https://www.attendsheets.com",  # With www
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
