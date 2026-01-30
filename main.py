@@ -1845,7 +1845,7 @@ async def get_student_day_stats(
 
 # ==================== CONTACT ENDPOINT ====================
 
-@app.post("/contact")
+@app.post("/api/contact")
 async def submit_contact(request: ContactRequest):
     """Submit contact form"""
     try:
